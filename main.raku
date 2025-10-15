@@ -1,9 +1,12 @@
 #!/usr/bin/env raku
+
 my @tokens;
+
 sub read_file($filename) {
     my $data = slurp "$filename";
     return $data;
 }
+
 sub lex($filecontents) {
     my $tok = "";
     my $state = 0;
@@ -48,6 +51,7 @@ sub lex($filecontents) {
     }
     return @tokens;
 }
+
 sub parse(@toks) {
     say @toks;
     while @toks {
@@ -75,6 +79,7 @@ sub parse(@toks) {
         }
     }
 }
+
 multi sub MAIN(:$RUN!) {
     my $data = read_file($RUN);
     my @toks = lex($data);
