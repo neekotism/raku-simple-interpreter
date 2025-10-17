@@ -38,7 +38,18 @@ sub lex($filecontents) {
                 $state = 1;
             }
             elsif $state == 1 {
-                @tokens.push: "STRING" ~ $string ~ "\""; 
+                @tokens.push: "STRING$string\""; 
+                $string = "";
+                $state = 0;
+                $tok = "";
+            }
+        }
+        elsif $tok eq "'" {
+            if $state == 0 {
+                $state = 1;
+            }
+            elsif $state == 1 {
+                @tokens.push: "INTEGER$string'"; 
                 $string = "";
                 $state = 0;
                 $tok = "";
@@ -57,24 +68,34 @@ sub parse(@toks) {
     while @toks {
         my $token = @toks.shift;
         given $token {
-            if @toks[0] ~~ /^GOBBLE$/ {
+            when $token eq "spurt" {
+                if @toks[0] ~~ /^GOBBLE$/ {
                 @toks.shift;
                 if @toks[0] ~~ /^STRING:(.*)$/ {
                     my $gobble_value = @toks.shift;
-                    my $gobble_string = $gobble_value.subst(/^STRING:/, '').trim;
-            
-                    my $gobble = prompt $gobble_string;
+                    my $gobble = prompt "{$gobble_value.subst(/^STRING:/, '').trim}: ";
+
+                    say $gobble;
+                } elsif @toks[0] ~~ /^INTEGER:(.*)$/ {
+                    my $gobble_value = @toks.shift;
+                    my $gobble = prompt "{$gobble_value.subst(/^INTEGER:/, '').trim}: ";
+
                     say $gobble;
                 } else {
                     say "Expecting value after 'gobble'";
                 }
             }
-            elsif @toks[0] ~~ /^STRING:(.*)$/ {
-                my $string_value = @toks.shift;
-                say $string_value.subst(/^STRING:/, '').trim;
-            }
-            else {
-                say "Expecting value after 'spurt'";
+                elsif @toks[0] ~~ /^STRING:(.*)$/ {
+                    my $value = @toks.shift;
+                    say $value.subst(/^STRING:/, '').trim;
+                }
+                elsif @toks[0] ~~ /^INTEGER:(.*)$/ {
+                    my $value = @toks.shift;
+                    say $value.subst(/^INTEGER:/, '').trim;
+                }
+                else {
+                    say "Expecting value after 'spurt'";
+                }                
             }
         }
     }
